@@ -1,0 +1,14 @@
+host: localhost:8080
+info:
+  contact:
+    email: msojocs@g mail.com
+    name: msojocs
+    url: https://jysafe.cn
+  description: Gin swagger AutoTask
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Gin swagger
+  version: "1.0"
+paths: {}
+swagger: "2.0"

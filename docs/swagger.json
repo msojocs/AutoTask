@@ -1,0 +1,19 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Gin swagger AutoTask",
+        "title": "Gin swagger",
+        "contact": {
+            "name": "msojocs",
+            "url": "https://jysafe.cn",
+            "email": "msojocs@g mail.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "paths": {}
+}
