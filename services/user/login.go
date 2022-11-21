@@ -1,6 +1,8 @@
 package user
 
 import (
+	"log"
+
 	"github.com/gin-gonic/gin"
 	model "github.com/msojocs/AutoTask/v1/models"
 	"github.com/msojocs/AutoTask/v1/pkg/serializer"
@@ -15,6 +17,7 @@ type UserLoginService struct {
 
 // Login 用户登录函数
 func (service *UserLoginService) Login(c *gin.Context) serializer.Response {
+	log.Println("UserLoginService: Login")
 	expectedUser, err := model.GetUserByEmail(service.UserName)
 	// 一系列校验
 	if err != nil {

@@ -37,6 +37,7 @@ func UserRegister(ctx *gin.Context) {
 
 // UserLogin 用户登录
 func UserLogin(c *gin.Context) {
+	log.Println("Controllers: UserLogin")
 	var service user.UserLoginService
 	if err := c.ShouldBindJSON(&service); err == nil {
 		res := service.Login(c)

@@ -25,7 +25,8 @@ func (user *User) Save() int64 {
 }
 
 func (user *User) CheckPassword(pass string) (bool, error) {
-	return true, nil
+	// TODO:加密的检测
+	return user.Password == pass, nil
 }
 
 // GetUserByEmail 用Email获取用户

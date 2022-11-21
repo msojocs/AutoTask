@@ -2,6 +2,8 @@ package router
 
 import (
 	"bytes"
+	"encoding/json"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -9,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/msojocs/AutoTask/v1/bootstrap"
+	"github.com/msojocs/AutoTask/v1/pkg/serializer"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -87,4 +90,36 @@ func TestUserRegister(t *testing.T) {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestUserLogin(t *testing.T) {
+	login := map[string]string{
+		"userName": "jiyecafe@gmail.com",
+		"Password": "123456",
+	}
+
+	data, err := json.Marshal(login)
+
+	if err != nil {
+		log.Println("请求 JSON 转换失败 ", err.Error())
+	}
+
+	log.Println("JSON ", string(data))
+
+	router := SetupRouter()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest(http.MethodPost, "/user/login", bytes.NewReader(data))
+	req.Header.Add("Content-Type", "application/json")
+	router.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusOK, w.Code)
+	var resp serializer.Response
+	err2 := json.Unmarshal(w.Body.Bytes(), &resp)
+
+	if err2 != nil {
+		log.Println("响应 JSON 转换失败 ", err.Error())
+	}
+
+	assert.Equal(t, 0, resp.Code)
+
 }
