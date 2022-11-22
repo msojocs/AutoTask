@@ -16,7 +16,7 @@ var DB *gorm.DB
 func Init() {
 	log.Println("Database init start")
 	var err error
-	connectionStr := fmt.Sprintf("%s:%s@tcp(%s:%d)/auto_task", conf.DbConf.Username, conf.DbConf.Password, conf.DbConf.Host, conf.DbConf.Port)
+	connectionStr := fmt.Sprintf("%s:%s@tcp(%s:%d)/auto_task?parseTime=true", conf.DbConf.Username, conf.DbConf.Password, conf.DbConf.Host, conf.DbConf.Port)
 	DB, err = gorm.Open(mysql.Open(connectionStr), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
 			TablePrefix:   "at_",

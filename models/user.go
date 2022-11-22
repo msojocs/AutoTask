@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/msojocs/AutoTask/v1/db"
 	"github.com/msojocs/AutoTask/v1/pkg/util"
@@ -13,13 +14,14 @@ import (
 )
 
 type User struct {
-	ID       int64
-	Email    string `form:"email" json:"email"`
-	Nick     string
-	Password string `form:"password" json:"password"`
-	Status   int
-	Avatar   string
-	GroupId  uint
+	ID        int64
+	Email     string `form:"email" json:"email"`
+	Nick      string
+	Password  string `form:"password" json:"password"`
+	Status    int
+	Avatar    string
+	GroupId   uint
+	CreatedAt time.Time
 }
 
 func (User) TableName() string {
