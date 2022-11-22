@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"strconv"
 	"testing"
 
@@ -79,29 +78,43 @@ func TestUserSaveByQuery2(t *testing.T) {
 }
 
 func TestUserRegister(t *testing.T) {
-	value := url.Values{}
-	value.Add("login", "test")
-	value.Add("name", "custom-name")
-	value.Add("password", "123456")
+	value := map[string]string{
+		"username": "123@gmail.com",
+		"nick":     "testuser",
+		"password": "123456",
+	}
+	data, err := json.Marshal(value)
+
+	if err != nil {
+		log.Fatalln("请求 JSON 转换失败 ", err.Error())
+	}
 
 	router := SetupRouter()
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest(http.MethodPost, "/user/register", bytes.NewBufferString(value.Encode()))
+	req, _ := http.NewRequest(http.MethodPost, "/user/register", bytes.NewReader(data))
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	router.ServeHTTP(w, req)
-	assert.Equal(t, http.StatusOK, w.Code)
+	var resp serializer.Response
+	err2 := json.Unmarshal(w.Body.Bytes(), &resp)
+
+	if err2 != nil {
+		log.Println("响应 JSON 转换失败 ", err2.Error())
+	}
+
+	assert.Equal(t, 0, resp.Code)
 }
 
 func TestUserLogin(t *testing.T) {
+
 	login := map[string]string{
-		"userName": "jiyecafe@gmail.com",
+		"userName": "test@gmail.com",
 		"Password": "123456",
 	}
 
 	data, err := json.Marshal(login)
 
 	if err != nil {
-		log.Println("请求 JSON 转换失败 ", err.Error())
+		log.Fatalln("请求 JSON 转换失败 ", err.Error())
 	}
 
 	log.Println("JSON ", string(data))
@@ -113,11 +126,12 @@ func TestUserLogin(t *testing.T) {
 	req.Header.Add("Content-Type", "application/json")
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
+
 	var resp serializer.Response
 	err2 := json.Unmarshal(w.Body.Bytes(), &resp)
 
 	if err2 != nil {
-		log.Println("响应 JSON 转换失败 ", err.Error())
+		log.Println("响应 JSON 转换失败 ", err2.Error())
 	}
 
 	assert.Equal(t, 0, resp.Code)

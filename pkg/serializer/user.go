@@ -9,7 +9,7 @@ import (
 // User 用户序列化器
 type User struct {
 	ID             int64     `json:"id"`
-	Email          string    `json:"user_name"`
+	Email          string    `json:"email"`
 	Nickname       string    `json:"nickname"`
 	Status         int       `json:"status"`
 	Avatar         string    `json:"avatar"`

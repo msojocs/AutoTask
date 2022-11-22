@@ -3,9 +3,7 @@ package controllers
 import (
 	"log"
 	"net/http"
-	"strconv"
 
-	model "github.com/msojocs/AutoTask/v1/models"
 	"github.com/msojocs/AutoTask/v1/services/user"
 
 	"github.com/gin-gonic/gin"
@@ -23,16 +21,15 @@ func UserSaveByQuery(ctx *gin.Context) {
 }
 
 func UserRegister(ctx *gin.Context) {
-	var user model.User
-	err := ctx.ShouldBind(&user)
-	if err != nil {
-		log.Fatalln("err->", err.Error())
-		return
+
+	var service user.UserRegisterService
+	if err := ctx.ShouldBindJSON(&service); err == nil {
+		res := service.Register(ctx)
+		ctx.JSON(200, res)
+	} else {
+		ctx.JSON(200, ErrorResponse(err))
 	}
-	// 通过
-	log.Println("success:", user.Login, " - ", user.Password)
-	id := user.Save()
-	ctx.String(http.StatusOK, "ok"+strconv.FormatInt(id, 10))
+
 }
 
 // UserLogin 用户登录
