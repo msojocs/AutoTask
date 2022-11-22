@@ -93,7 +93,7 @@ func GetUserByEmail(email string) (User, error) {
 func IsEmailExists(email string) (bool, error) {
 	var user User
 	err := db.DB.Set("gorm:auto_preload", true).Where("email = ?", email).First(&user).Error
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return false, err
 	}
 	return true, err

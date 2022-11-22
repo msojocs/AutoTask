@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-sql-driver/mysql"
 	"github.com/msojocs/AutoTask/v1/db"
 	model "github.com/msojocs/AutoTask/v1/models"
 	"github.com/msojocs/AutoTask/v1/pkg/serializer"
@@ -19,7 +20,7 @@ type UserRegisterService struct {
 
 // Register 用户注册函数
 func (service *UserRegisterService) Register(c *gin.Context) serializer.Response {
-	log.Println("UserRegisterService: ")
+	log.Println("UserRegisterService: register start")
 	user := model.User{
 		Email: service.Email,
 	}
@@ -27,6 +28,7 @@ func (service *UserRegisterService) Register(c *gin.Context) serializer.Response
 	user.SetPassword(service.Password)
 
 	// 设置默认用户组
+	log.Println("UserRegisterService: get default group id")
 	defaultGroup := model.GetIntSetting("default_group", -1)
 	if defaultGroup == -1 {
 		return serializer.Err(serializer.CodeGroupNotFound, "failed to get default group", nil)
@@ -35,13 +37,25 @@ func (service *UserRegisterService) Register(c *gin.Context) serializer.Response
 
 	// 添加用户
 	if err := db.DB.Create(&user).Error; err != nil {
-		expectedUser, err := model.IsEmailExists(service.Email)
-		if expectedUser {
+		log.Println("创建用户失败！", err.Error())
+
+		if driverErr, ok := err.(*mysql.MySQLError); ok { // 现在可以直接访问错误编号
+			if driverErr.Number != 1062 {
+				// 处理未知的错误
+				return serializer.Err(serializer.CodeNotSet, "unexpected error", err)
+			}
+		}
+
+		exists, err := model.IsEmailExists(service.Email)
+		if exists {
 			return serializer.Err(serializer.CodeEmailExisted, "user email already in use", err)
 		}
 
+		return serializer.Err(serializer.CodeNotSet, "unexpected error", err)
+	} else {
+		return serializer.Response{
+			Msg: "success",
+		}
 	}
-
-	return serializer.Response{}
 
 }

@@ -92,7 +92,7 @@ func TestUserRegister(t *testing.T) {
 	router := SetupRouter()
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest(http.MethodPost, "/user/register", bytes.NewReader(data))
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Type", "application/json")
 	router.ServeHTTP(w, req)
 	var resp serializer.Response
 	err2 := json.Unmarshal(w.Body.Bytes(), &resp)

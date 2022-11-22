@@ -20,7 +20,7 @@ func (Setting) TableName() string {
 func GetSettingByName(name string) string {
 	var setting Setting
 	result := db.DB.Where("name = ?", name).Select("value").First(&setting)
-	if result.Error == nil {
+	if result == nil || result.Error == nil {
 		return setting.Value
 	}
 	return ""
