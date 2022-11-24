@@ -13,6 +13,15 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	// NotActivicated 未激活
+	NotActivicated = iota
+	// Active 账户正常状态
+	Active
+	// Baned 被封禁
+	Baned
+)
+
 type User struct {
 	ID        int64
 	Email     string `form:"email" json:"email"`

@@ -2,8 +2,11 @@ package user
 
 import (
 	"log"
+	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	jwt "github.com/golang-jwt/jwt/v4"
 	model "github.com/msojocs/AutoTask/v1/models"
 	"github.com/msojocs/AutoTask/v1/pkg/serializer"
 )
@@ -26,12 +29,12 @@ func (service *UserLoginService) Login(c *gin.Context) serializer.Response {
 	if authOK, _ := expectedUser.CheckPassword(service.Password); !authOK {
 		return serializer.Err(serializer.CodeCredentialInvalid, "Wrong password or email address", nil)
 	}
-	// if expectedUser.Status == model.Baned || expectedUser.Status == model.OveruseBaned {
-	// 	return serializer.Err(serializer.CodeUserBaned, "This account has been blocked", nil)
-	// }
-	// if expectedUser.Status == model.NotActivicated {
-	// 	return serializer.Err(serializer.CodeUserNotActivated, "This account is not activated", nil)
-	// }
+	if expectedUser.Status == model.Baned {
+		return serializer.Err(serializer.CodeUserBaned, "This account has been blocked", nil)
+	}
+	if expectedUser.Status == model.NotActivicated {
+		return serializer.Err(serializer.CodeUserNotActivated, "This account is not activated", nil)
+	}
 
 	// if expectedUser.TwoFactor != "" {
 	// 	// 需要二步验证
@@ -41,11 +44,30 @@ func (service *UserLoginService) Login(c *gin.Context) serializer.Response {
 	// 	return serializer.Response{Code: 203}
 	// }
 
-	// //登陆成功，清空并设置session
-	// util.SetSession(c, map[string]interface{}{
-	// 	"user_id": expectedUser.ID,
-	// })
+	// 省略代码
+	expiresTime := time.Now().Unix() + int64(24*60*60)
+	claims := jwt.RegisteredClaims{
+		Audience:  []string{expectedUser.Nick},                   // 受众
+		ExpiresAt: jwt.NewNumericDate(time.Unix(expiresTime, 0)), // 失效时间
+		IssuedAt:  jwt.NewNumericDate(time.Now()),                // 签发时间
+		Issuer:    "gin hello",                                   // 签发人
+		NotBefore: jwt.NewNumericDate(time.Now()),                // 生效时间
+		Subject:   "login",                                       // 主题
+	}
+	finalClaims := model.MyCustomClaims{
+		Id:               strconv.FormatInt(expectedUser.ID, 10), // 编号
+		RegisteredClaims: claims,
+	}
+	var jwtSecret = []byte("")
+	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, finalClaims)
+	token, err := tokenClaims.SignedString(jwtSecret)
 
-	return serializer.BuildUserResponse(expectedUser)
+	return serializer.Response{
+		Code: 0,
+		Data: map[string]string{
+			"token": token,
+		},
+		Msg: "success",
+	}
 
 }

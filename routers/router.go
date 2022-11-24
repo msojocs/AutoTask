@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/msojocs/AutoTask/v1/middleware"
 	"net/http"
 	"strings"
 
@@ -19,7 +20,7 @@ func SetupRouter() *gin.Engine {
 	router := gin.Default()
 
 	router.GET("/", retHelloGinAndMethod)
-	router.GET("/test", func(ctx *gin.Context) {
+	router.GET("/test", middleware.Auth(), func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{
 			"test": 123,
 		})

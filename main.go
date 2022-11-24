@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/msojocs/AutoTask/v1/bootstrap"
 	_ "github.com/msojocs/AutoTask/v1/docs"
 	router "github.com/msojocs/AutoTask/v1/routers"
@@ -22,7 +20,9 @@ import (
 // @host localhost:8080
 func main() {
 	bootstrap.Init()
-	fmt.Println("hello")
-	router := router.SetupRouter()
-	router.Run()
+	route := router.SetupRouter()
+	err := route.Run()
+	if err != nil {
+		return
+	}
 }

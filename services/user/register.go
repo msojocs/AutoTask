@@ -22,7 +22,8 @@ type UserRegisterService struct {
 func (service *UserRegisterService) Register(c *gin.Context) serializer.Response {
 	log.Println("UserRegisterService: register start")
 	user := model.User{
-		Email: service.Email,
+		Email:  service.Email,
+		Status: model.NotActivicated,
 	}
 	// 密码加密
 	user.SetPassword(service.Password)
