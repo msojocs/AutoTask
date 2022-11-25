@@ -33,7 +33,7 @@ type User struct {
 	CreatedAt time.Time
 }
 
-func (User) TableName() string {
+func (user *User) TableName() string {
 	return "at_users"
 }
 
@@ -43,6 +43,16 @@ func (user *User) Save() int64 {
 }
 
 func (user *User) CheckPassword(pass string) (bool, error) {
+
+	// 原生密码
+	if user.Password == pass {
+		err := user.SetPassword(pass)
+		if err != nil {
+			return false, err
+		}
+
+		return true, nil
+	}
 
 	// 根据存储密码拆分为 Salt 和 Digest
 	passwordStore := strings.Split(user.Password, ":")
