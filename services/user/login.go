@@ -1,6 +1,7 @@
 package user
 
 import (
+	"github.com/msojocs/AutoTask/v1/pkg/conf"
 	"log"
 	"strconv"
 	"time"
@@ -58,7 +59,7 @@ func (service *UserLoginService) Login(c *gin.Context) serializer.Response {
 		Id:               strconv.FormatInt(expectedUser.ID, 10), // 编号
 		RegisteredClaims: claims,
 	}
-	var jwtSecret = []byte("")
+	var jwtSecret = []byte(conf.Conf.Jwt.Secret)
 	tokenClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, finalClaims)
 	token, err := tokenClaims.SignedString(jwtSecret)
 

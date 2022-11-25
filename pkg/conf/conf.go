@@ -6,11 +6,14 @@ type database struct {
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
 }
+type jwt struct {
+	Secret string `yaml:"secret"`
+}
 type conf struct {
-	Db   database `yaml:"db"`
-	Test int      `yaml:"test"`
+	Db  database `yaml:"db"`
+	Jwt jwt      `yaml:"jwt"`
 }
 
-// 初始化
+// Conf 初始化
 var Conf conf
 var DbConf *database = &Conf.Db

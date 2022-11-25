@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 	model "github.com/msojocs/AutoTask/v1/models"
+	"github.com/msojocs/AutoTask/v1/pkg/conf"
 	"github.com/msojocs/AutoTask/v1/pkg/serializer"
 	"net/http"
 	"strings"
@@ -11,7 +12,7 @@ import (
 
 func parseToken(token string) (*model.MyCustomClaims, error) {
 	jwtToken, err := jwt.ParseWithClaims(token, &model.MyCustomClaims{}, func(token *jwt.Token) (i interface{}, e error) {
-		return []byte(""), nil
+		return []byte(conf.Conf.Jwt.Secret), nil
 	})
 	if err == nil && jwtToken != nil {
 		if claim, ok := jwtToken.Claims.(*model.MyCustomClaims); ok && jwtToken.Valid {
