@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	// NotActivicated 未激活
-	NotActivicated = iota
+	// NotActivated 未激活
+	NotActivated = iota
 	// Active 账户正常状态
 	Active
 	// Baned 被封禁

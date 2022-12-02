@@ -33,7 +33,7 @@ func (service *UserLoginService) Login(c *gin.Context) serializer.Response {
 	if expectedUser.Status == model.Baned {
 		return serializer.Err(serializer.CodeUserBaned, "This account has been blocked", nil)
 	}
-	if expectedUser.Status == model.NotActivicated {
+	if expectedUser.Status == model.NotActivated {
 		return serializer.Err(serializer.CodeUserNotActivated, "This account is not activated", nil)
 	}
 
