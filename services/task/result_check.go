@@ -52,7 +52,8 @@ func checkStatus(resp Result, exp Expected) error {
 func checkBody(result Result, exp Expected) error {
 	ret := gjson.Get(result.body, exp.path)
 	switch exp.vType {
-	case "integer":
+	// int类型相等
+	case "integerEqual":
 		v, err := strconv.ParseInt(exp.value, 10, 64)
 		if err != nil {
 			return errors.New("failed to parse value format")
@@ -62,12 +63,24 @@ func checkBody(result Result, exp Expected) error {
 		}
 		//log.Panicln("check failed!", "expected:", value, " actual:", ret.Int())
 		break
-	case "string":
+
+	//	字符串要相等
+	case "stringEqual":
 		if ret.String() != exp.value {
 			return errors.New(fmt.Sprintf("check failed! expected:%s actual:%s", exp.value, ret.String()))
 		}
 		//log.Panicln("check failed!", "expected:", value, " actual:", ret.String())
 		break
+
+	//	字符串非空
+	case "stringNotEmpty":
+		if len(ret.String()) == 0 {
+			return errors.New("check failed! string is empty")
+		}
+		//log.Panicln("check failed!", "expected:", value, " actual:", ret.String())
+		break
+
+	//	数组长度为特定值
 	case "arrayLength":
 		if !ret.IsArray() {
 			return errors.New(fmt.Sprintf("ret is not array"))

@@ -1,99 +1,187 @@
 package task
 
 import (
-	"errors"
+	"bytes"
+	"crypto/tls"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"net/url"
+	"os"
+	"path"
 	"strings"
+	"time"
 )
 
 type Task struct {
-	// POST/GET/PUT/DELETE
+	// POST/request/PUT/DELETE
 	method string
 	// 路径
 	url string
 	// 请求头
 	header map[string]string
+	// 代理
+	proxy string
 
 	// 请求体
 	body taskBody
 
-	//	结果测试
+	// 结果测试
 	expected []Expected
 }
 
+// Result HTTP响应信息
 type Result struct {
 	status int
 	header map[string]string
 	body   string
 }
 
+// Expected 验证数据
 type Expected struct {
 	path  string
 	value string
 	vType string
 }
 type taskBody struct {
-	// 类型
+	// body类型 file/string/binary/json/form
 	t    string
 	data interface{}
 }
 
-var requestMap map[string]func(task Task) (Result, error)
-
 func init() {
-	// 初始化
-	requestMap = make(map[string]func(task Task) (Result, error))
-	//requestMap["POST"] = POST
-	requestMap["GET"] = GET
-	//requestMap["DELETE"] = DELETE
-	//requestMap["PUT"] = PUT
-	//requestMap["PATCH"] = PATCH
 }
-func (task Task) exec() (Result, error) {
+func (task *Task) exec() (Result, error) {
 	log.Println("request start")
 
 	var result Result
-	// 转换大写
-	funcName := strings.ToUpper(task.method)
-	if requestMap[funcName] != nil {
-		// 请求
-		result, err := requestMap[funcName](task)
-		if err != nil {
-			//log.Panicln(err.Error())
-			return result, err
-		}
-
-		log.Println("test")
-
-		// 检测请求结果
-		if task.expected != nil {
-			for i := range task.expected {
-				exp := task.expected[i]
-				err = checkResponse(result, exp)
-				if nil != err {
-					return result, err
-				}
-			}
-		}
-	} else {
-		log.Println("func not found!")
-		return result, errors.New("method not found")
+	// 请求
+	result, err := request(task)
+	if err != nil {
+		//log.Panicln(err.Error())
+		return result, err
 	}
 
-	log.SetPrefix("")
+	log.Println("test")
+
+	// 检测请求结果
+	if task.expected != nil {
+		for i := range task.expected {
+			exp := task.expected[i]
+			err = checkResponse(result, exp)
+			if nil != err {
+				return result, err
+			}
+		}
+	}
+
 	log.Println("request end")
 	return result, nil
 }
 
-func GET(task Task) (Result, error) {
-	log.SetPrefix("GET:")
-	log.Println("GET func")
+func (task *Task) genClient() *http.Client {
+	client := &http.Client{
+		Timeout: time.Second * 5, //超时时间
+	}
+	if task.proxy != "" {
+		proxy, _ := url.Parse(task.proxy)
+		tr := &http.Transport{
+			Proxy:           http.ProxyURL(proxy),
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+
+		client.Transport = tr
+	}
+
+	return client
+}
+
+func (task *Task) genBody(body *taskBody) io.Reader {
+	if body == nil {
+		return nil
+	}
+	if task.header == nil {
+		task.header = make(map[string]string)
+	}
+
+	// form/string(json...)/file/binary
+	switch body.t {
+	case "string":
+		task.header["Content-Type"] = "text/plain"
+		v, _ := body.data.(string)
+		return strings.NewReader(v)
+
+	case "json":
+		task.header["Content-Type"] = "application/json"
+		v, _ := body.data.(string)
+		return strings.NewReader(v)
+
+	case "form":
+		task.header["Content-Type"] = "application/x-www-form-urlencoded"
+		v, _ := body.data.(map[string]string)
+		ret := ""
+		if v != nil {
+			for key := range v {
+				ret += fmt.Sprintf("%s=%s&", key, v[key])
+			}
+			ret = strings.TrimRight(ret, "&")
+		}
+		return strings.NewReader(ret)
+
+	case "binary":
+		// 文件路径
+		s, ok := body.data.(string)
+		if !ok {
+			log.Println("failed to convert body data")
+			return nil
+		}
+		storage := "/tmp/file/" + s
+		d, err := os.ReadFile(storage)
+		if err != nil {
+			log.Println("failed to read file Data")
+		}
+		return bytes.NewReader(d)
+
+	case "file":
+		boundary := "--------------------------462569855119802584810426"
+		task.header["Content-Type"] = "multipart/form-data; boundary=" + boundary
+		dataMap, ok := body.data.(map[string]string)
+		if !ok {
+			return nil
+		}
+
+		var fileData string
+		if dataMap != nil {
+			for name := range dataMap {
+				file := dataMap[name]
+				filename := path.Base(file)
+				fileContent, err := os.ReadFile(file)
+				if err != nil {
+					continue
+				}
+				fileData = "--" + boundary + "\r\n"
+				fileData = fileData + "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + filename + "\"\r\n"
+				fileData = fileData + "Content-Type: application/octet-stream\r\n\r\n"
+				fileData = fileData + string(fileContent) + "\r\n"
+			}
+			fileData += "--" + boundary + "--\r\n"
+		}
+		return strings.NewReader(fileData)
+
+	}
+	return nil
+}
+
+func request(task *Task) (Result, error) {
+	log.Println("request func")
 
 	result := Result{}
 
-	req, err := http.NewRequest("GET", task.url, nil)
+	var body io.Reader
+	body = task.genBody(&task.body)
+
+	req, err := http.NewRequest(task.method, task.url, body)
 	if err != nil {
 		return result, err
 	}
@@ -109,7 +197,8 @@ func GET(task Task) (Result, error) {
 	}
 
 	log.Println("exec")
-	resp, err := (&http.Client{}).Do(req)
+	client := task.genClient()
+	resp, err := client.Do(req)
 	if err != nil {
 		return result, err
 	}
@@ -133,29 +222,5 @@ func GET(task Task) (Result, error) {
 		return result, err
 	}
 
-	return result, nil
-}
-
-func POST(task Task) (Result, error) {
-	log.Println("POST func")
-	result := Result{}
-	return result, nil
-}
-
-func PUT(task Task) (Result, error) {
-	log.Println("PUT func")
-	result := Result{}
-	return result, nil
-}
-
-func DELETE(task Task) (Result, error) {
-	log.Println("DELETE func")
-	result := Result{}
-	return result, nil
-}
-
-func PATCH(task Task) (Result, error) {
-	log.Println("PATCH func")
-	result := Result{}
 	return result, nil
 }
