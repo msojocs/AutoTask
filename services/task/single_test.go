@@ -7,23 +7,23 @@ import (
 
 func TestSingle(t *testing.T) {
 	var task Task
-	task.method = "get"
-	task.url = "https://api.lolicon.app/setu/v2?uid=123456"
-	//task.proxy = "http://127.0.0.1:8888"
-	task.expected = append(task.expected, Expected{
-		path:  "body.error",
-		value: "",
-		vType: "stringEqual",
+	task.Method = "GET"
+	task.Url = "https://api.lolicon.app/setu/v2?uid=123456"
+	//task.Proxy = "http://127.0.0.1:8888"
+	task.Expected = append(task.Expected, Expected{
+		Path:  "body.error",
+		Value: "",
+		Vtype: "stringEqual",
 	})
-	task.expected = append(task.expected, Expected{
-		path:  "body.data",
-		value: "0",
-		vType: "arrayLength",
+	task.Expected = append(task.Expected, Expected{
+		Path:  "body.data",
+		Value: "0",
+		Vtype: "arrayLength",
 	})
-	task.expected = append(task.expected, Expected{
-		path:  "status",
-		value: "200",
-		vType: "integerEqual",
+	task.Expected = append(task.Expected, Expected{
+		Path:  "status",
+		Value: "200",
+		Vtype: "integerEqual",
 	})
 
 	_, err := task.exec()
@@ -36,17 +36,17 @@ func TestSingle(t *testing.T) {
 // 测试文件上传
 func TestUploadFile(t *testing.T) {
 	var task Task
-	task.method = "POST"
-	task.url = "https://httpbin.org/post"
-	task.body.t = "file"
-	//task.proxy = "http://127.0.0.1:8888"
-	task.body.data = map[string]string{
+	task.Method = "POST"
+	task.Url = "https://httpbin.org/post"
+	task.Body.t = "file"
+	task.Proxy = "http://127.0.0.1:8888"
+	task.Body.data = map[string]string{
 		"file1": "D:/tmp/0cdefae3f68eb4bb5a19181a936fa009",
 	}
-	task.expected = append(task.expected, Expected{
-		path:  "body.files.file1",
-		value: "",
-		vType: "stringNotEmpty",
+	task.Expected = append(task.Expected, Expected{
+		Path:  "body.files.file1",
+		Value: "",
+		Vtype: "stringNotEmpty",
 	})
 
 	_, err := task.exec()

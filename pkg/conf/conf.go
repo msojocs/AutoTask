@@ -9,9 +9,14 @@ type database struct {
 type jwt struct {
 	Secret string `yaml:"secret"`
 }
+type storage struct {
+	Path string `yaml:"path"`
+}
+
 type conf struct {
-	Db  database `yaml:"db"`
-	Jwt jwt      `yaml:"jwt"`
+	Db      database `yaml:"db"`
+	Jwt     jwt      `yaml:"jwt"`
+	Storage storage  `yaml:"storage"`
 }
 
 // Conf 初始化

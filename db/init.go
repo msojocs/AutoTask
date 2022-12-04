@@ -19,8 +19,8 @@ func Init() {
 	connectionStr := fmt.Sprintf("%s:%s@tcp(%s:%d)/auto_task?parseTime=true", conf.DbConf.Username, conf.DbConf.Password, conf.DbConf.Host, conf.DbConf.Port)
 	DB, err = gorm.Open(mysql.Open(connectionStr), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
-			TablePrefix:   "at_",
-			SingularTable: true,
+			TablePrefix: "at_",
+			//SingularTable: true,
 		},
 	})
 	if err != nil {

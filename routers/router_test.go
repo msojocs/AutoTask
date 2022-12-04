@@ -6,7 +6,11 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/msojocs/AutoTask/v1/bootstrap"
@@ -15,7 +19,11 @@ import (
 )
 
 func init() {
-	bootstrap.Init()
+	file, _ := exec.LookPath(os.Args[0])
+	path, _ := filepath.Abs(file)
+	index := strings.LastIndex(path, string(os.PathSeparator))
+	path = path[:index]
+	bootstrap.Init(path)
 }
 
 func TestRouter(t *testing.T) {

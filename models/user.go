@@ -33,7 +33,7 @@ type User struct {
 	CreatedAt time.Time
 }
 
-func (user *User) TableName() string {
+func (*User) TableName() string {
 	return "at_users"
 }
 

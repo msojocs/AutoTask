@@ -1,1 +1,5 @@
 package task
+
+func Run() {
+
+}

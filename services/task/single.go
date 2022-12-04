@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
+	"github.com/msojocs/AutoTask/v1/pkg/conf"
 	"io"
 	"log"
 	"net/http"
@@ -16,33 +17,33 @@ import (
 
 type Task struct {
 	// POST/request/PUT/DELETE
-	method string
+	Method string
 	// 路径
-	url string
+	Url string
 	// 请求头
-	header map[string]string
+	Header map[string]string
 	// 代理
-	proxy string
+	Proxy string
 
 	// 请求体
-	body taskBody
+	Body taskBody
 
 	// 结果测试
-	expected []Expected
+	Expected []Expected
 }
 
 // Result HTTP响应信息
 type Result struct {
-	status int
-	header map[string]string
-	body   string
+	Status int
+	Header map[string]string
+	Body   string
 }
 
 // Expected 验证数据
 type Expected struct {
-	path  string
-	value string
-	vType string
+	Path  string
+	Value string
+	Vtype string
 }
 type taskBody struct {
 	// body类型 file/string/binary/json/form
@@ -52,6 +53,7 @@ type taskBody struct {
 
 func init() {
 }
+
 func (task *Task) exec() (Result, error) {
 	log.Println("request start")
 
@@ -66,9 +68,9 @@ func (task *Task) exec() (Result, error) {
 	log.Println("test")
 
 	// 检测请求结果
-	if task.expected != nil {
-		for i := range task.expected {
-			exp := task.expected[i]
+	if task.Expected != nil {
+		for i := range task.Expected {
+			exp := task.Expected[i]
 			err = checkResponse(result, exp)
 			if nil != err {
 				return result, err
@@ -84,8 +86,8 @@ func (task *Task) genClient() *http.Client {
 	client := &http.Client{
 		Timeout: time.Second * 5, //超时时间
 	}
-	if task.proxy != "" {
-		proxy, _ := url.Parse(task.proxy)
+	if task.Proxy != "" {
+		proxy, _ := url.Parse(task.Proxy)
 		tr := &http.Transport{
 			Proxy:           http.ProxyURL(proxy),
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -101,24 +103,24 @@ func (task *Task) genBody(body *taskBody) io.Reader {
 	if body == nil {
 		return nil
 	}
-	if task.header == nil {
-		task.header = make(map[string]string)
+	if task.Header == nil {
+		task.Header = make(map[string]string)
 	}
 
 	// form/string(json...)/file/binary
 	switch body.t {
 	case "string":
-		task.header["Content-Type"] = "text/plain"
+		task.Header["Content-Type"] = "text/plain"
 		v, _ := body.data.(string)
 		return strings.NewReader(v)
 
 	case "json":
-		task.header["Content-Type"] = "application/json"
+		task.Header["Content-Type"] = "application/json"
 		v, _ := body.data.(string)
 		return strings.NewReader(v)
 
 	case "form":
-		task.header["Content-Type"] = "application/x-www-form-urlencoded"
+		task.Header["Content-Type"] = "application/x-www-form-urlencoded"
 		v, _ := body.data.(map[string]string)
 		ret := ""
 		if v != nil {
@@ -133,10 +135,10 @@ func (task *Task) genBody(body *taskBody) io.Reader {
 		// 文件路径
 		s, ok := body.data.(string)
 		if !ok {
-			log.Println("failed to convert body data")
+			log.Println("failed to convert Body data")
 			return nil
 		}
-		storage := "/tmp/file/" + s
+		storage := conf.Conf.Storage.Path + "/" + s
 		d, err := os.ReadFile(storage)
 		if err != nil {
 			log.Println("failed to read file Data")
@@ -145,7 +147,7 @@ func (task *Task) genBody(body *taskBody) io.Reader {
 
 	case "file":
 		boundary := "--------------------------462569855119802584810426"
-		task.header["Content-Type"] = "multipart/form-data; boundary=" + boundary
+		task.Header["Content-Type"] = "multipart/form-data; boundary=" + boundary
 		dataMap, ok := body.data.(map[string]string)
 		if !ok {
 			return nil
@@ -154,7 +156,7 @@ func (task *Task) genBody(body *taskBody) io.Reader {
 		var fileData string
 		if dataMap != nil {
 			for name := range dataMap {
-				file := dataMap[name]
+				file := conf.Conf.Storage.Path + "/" + dataMap[name]
 				filename := path.Base(file)
 				fileContent, err := os.ReadFile(file)
 				if err != nil {
@@ -179,16 +181,16 @@ func request(task *Task) (Result, error) {
 	result := Result{}
 
 	var body io.Reader
-	body = task.genBody(&task.body)
+	body = task.genBody(&task.Body)
 
-	req, err := http.NewRequest(task.method, task.url, body)
+	req, err := http.NewRequest(strings.ToUpper(task.Method), task.Url, body)
 	if err != nil {
 		return result, err
 	}
 
-	log.Println("handle header")
+	log.Println("handle Header")
 	// 请求头处理
-	header := task.header
+	header := task.Header
 	if header != nil {
 		//	添加请求头
 		for h := range header {
@@ -212,10 +214,10 @@ func request(task *Task) (Result, error) {
 
 	log.Println("to string")
 	retStr := string(respByte)
-	result.body = retStr
+	result.Body = retStr
 	log.Println("resp:", retStr)
 	log.Println(io.EOF)
-	result.status = resp.StatusCode
+	result.Status = resp.StatusCode
 	err = resp.Body.Close()
 	if err != nil {
 		log.Println("err3", err.Error())
