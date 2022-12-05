@@ -4,10 +4,8 @@ import (
 	"github.com/msojocs/AutoTask/v1/bootstrap"
 	_ "github.com/msojocs/AutoTask/v1/docs"
 	router "github.com/msojocs/AutoTask/v1/routers"
+	"log"
 	"os"
-	"os/exec"
-	"path/filepath"
-	"strings"
 )
 
 // @title Gin swagger
@@ -24,13 +22,14 @@ import (
 // @host localhost:8080
 func main() {
 
-	file, _ := exec.LookPath(os.Args[0])
-	path, _ := filepath.Abs(file)
-	index := strings.LastIndex(path, string(os.PathSeparator))
-	path = path[:index]
-	bootstrap.Init(path)
+	wd, err := os.Getwd()
+	if err != nil {
+		log.Panicln("获取工作目录失败！")
+	}
+
+	bootstrap.Init(wd)
 	route := router.SetupRouter()
-	err := route.Run()
+	err = route.Run()
 	if err != nil {
 		return
 	}

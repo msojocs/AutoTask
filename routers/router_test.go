@@ -7,10 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"os/exec"
-	"path/filepath"
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/msojocs/AutoTask/v1/bootstrap"
@@ -19,11 +16,11 @@ import (
 )
 
 func init() {
-	file, _ := exec.LookPath(os.Args[0])
-	path, _ := filepath.Abs(file)
-	index := strings.LastIndex(path, string(os.PathSeparator))
-	path = path[:index]
-	bootstrap.Init(path)
+	wd, err := os.Getwd()
+	if err != nil {
+		log.Panicln("获取工作目录失败！")
+	}
+	bootstrap.Init(wd + "/../")
 }
 
 func TestRouter(t *testing.T) {

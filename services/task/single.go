@@ -16,7 +16,7 @@ import (
 )
 
 type Task struct {
-	// POST/request/PUT/DELETE
+	// POST/GET/PUT/DELETE
 	Method string
 	// 路径
 	Url string

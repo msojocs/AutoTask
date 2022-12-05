@@ -6,12 +6,17 @@ import (
 	"github.com/msojocs/AutoTask/v1/db"
 	model "github.com/msojocs/AutoTask/v1/models"
 	"log"
+	"os"
 	"testing"
 )
 
 func init() {
 
-	bootstrap.Init("D:\\data\\program\\go\\GinHello")
+	wd, err := os.Getwd()
+	if err != nil {
+		log.Panicln("获取工作目录失败！")
+	}
+	bootstrap.Init(wd + "/../../")
 }
 
 func TestRequest(t *testing.T) {
