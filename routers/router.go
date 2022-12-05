@@ -2,8 +2,6 @@ package router
 
 import (
 	"github.com/msojocs/AutoTask/v1/middleware"
-	"net/http"
-	"strings"
 	"time"
 
 	controller "github.com/msojocs/AutoTask/v1/routers/controllers"
@@ -13,10 +11,6 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
-
-func retHelloGinAndMethod(ctx *gin.Context) {
-	ctx.String(http.StatusOK, "hello gin "+strings.ToLower(ctx.Request.Method)+" method")
-}
 
 func SetupRouter() *gin.Engine {
 	router := gin.Default()
@@ -34,22 +28,66 @@ func SetupRouter() *gin.Engine {
 		MaxAge: 12 * time.Hour,
 	}))
 
-	api := router.Group("/api")
-	api.GET("/", retHelloGinAndMethod)
-	api.GET("/test", middleware.Auth(), func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, gin.H{
-			"test": 123,
-		})
-	})
-	api.POST("/", retHelloGinAndMethod)
-	api.PATCH("/", retHelloGinAndMethod)
+	api := router.Group("/api/v1")
+	// 用户相关操作
 	user := api.Group("/user")
 	{
-
-		user.GET("/:name", controller.UserSave)
-		user.GET("", controller.UserSaveByQuery)
-		user.POST("/register", controller.UserRegister)
+		// 用户注册
+		user.POST("/register", middleware.Auth(), controller.UserRegister)
+		// 用户登录
 		user.POST("/login", controller.UserLogin)
+		// 获取用户菜单
+		user.GET("/menus", middleware.Auth(), controller.UserMenus)
+	}
+	// 用户组相关
+	authGroup := api.Group("/auth/group", middleware.Auth())
+	{
+		// 获取所有用户组
+		authGroup.GET("", nil)
+		// 创建用户组
+		authGroup.POST("/create", nil)
+		// 修改用户组信息
+		authGroup.PUT("/:group_id", nil)
+		// 删除用户组
+		authGroup.DELETE("/:group_id", nil)
+		// 修改用户组下的菜单
+		authGroup.PUT("/menus", nil)
+	}
+	// 菜单相关
+	authMenu := api.Group("/auth/menu", middleware.Auth())
+	{
+		// 获取所有菜单
+		authMenu.GET("", nil)
+		// 创建菜单
+		authMenu.POST("/create", nil)
+		// 修改菜单
+		authMenu.PUT("/:menu_id", nil)
+		// 删除菜单
+		authMenu.DELETE("/:menu_id", nil)
+	}
+	// 任务相关
+	job := api.Group("/job", middleware.Auth())
+	{
+		// 获取任务信息
+		job.GET("/:job_id", nil)
+		// 创建任务
+		job.POST("/create", nil)
+		// 修改任务信息
+		job.PUT("/:job_id", nil)
+		// 删除任务
+		job.DELETE("/:job_id", nil)
+	}
+	// 请求相关
+	req := api.Group("/request", middleware.Auth())
+	{
+		// 获取请求信息
+		req.GET("/:request_id", nil)
+		// 创建请求
+		req.POST("/create", nil)
+		// 修改请求
+		req.PUT("/:request_id", nil)
+		//	删除请求
+		req.DELETE("/:request_id", nil)
 	}
 
 	url := ginSwagger.URL("http://localhost:8080/swagger/doc.json")

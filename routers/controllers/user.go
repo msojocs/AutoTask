@@ -1,25 +1,14 @@
 package controllers
 
 import (
+	"github.com/msojocs/AutoTask/v1/services/user"
 	"log"
 	"net/http"
-
-	"github.com/msojocs/AutoTask/v1/services/user"
 
 	"github.com/gin-gonic/gin"
 )
 
-func UserSave(ctx *gin.Context) {
-	username := ctx.Param("name")
-	ctx.String(http.StatusOK, "用户"+username+"已保存")
-}
-
-func UserSaveByQuery(ctx *gin.Context) {
-	username := ctx.Query("name")
-	age := ctx.DefaultQuery("age", "20")
-	ctx.String(http.StatusOK, "用户："+username+",年龄："+age+"已保存")
-}
-
+// UserRegister 用户注册
 func UserRegister(ctx *gin.Context) {
 
 	var service user.UserRegisterService
@@ -42,4 +31,9 @@ func UserLogin(c *gin.Context) {
 	} else {
 		c.JSON(200, ErrorResponse(err))
 	}
+}
+
+// UserMenus 获取用户的菜单
+func UserMenus(c *gin.Context) {
+	c.JSON(http.StatusOK, 123)
 }
