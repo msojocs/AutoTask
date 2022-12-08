@@ -12,15 +12,15 @@ import (
 	"github.com/msojocs/AutoTask/v1/pkg/serializer"
 )
 
-// UserLoginService 管理用户登录的服务
-type UserLoginService struct {
+// LoginService 管理用户登录的服务
+type LoginService struct {
 	//TODO 细致调整验证规则
 	UserName string `form:"userName" json:"userName" binding:"required,email"`
 	Password string `form:"Password" json:"Password" binding:"required,min=4,max=64"`
 }
 
 // Login 用户登录函数
-func (service *UserLoginService) Login(c *gin.Context) serializer.Response {
+func (service *LoginService) Login(c *gin.Context) serializer.Response {
 	log.Println("UserLoginService: Login")
 	expectedUser, err := model.GetUserByEmail(service.UserName)
 	// 一系列校验

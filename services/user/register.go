@@ -10,8 +10,8 @@ import (
 	"github.com/msojocs/AutoTask/v1/pkg/serializer"
 )
 
-// UserRegisterService 管理用户注册的服务
-type UserRegisterService struct {
+// RegisterService 管理用户注册的服务
+type RegisterService struct {
 	//TODO 细致调整验证规则
 	Email    string `form:"userName" json:"userName" binding:"required,email"`
 	Nick     string `form:"nick" json:"nick" binding:"required"`
@@ -19,14 +19,17 @@ type UserRegisterService struct {
 }
 
 // Register 用户注册函数
-func (service *UserRegisterService) Register(c *gin.Context) serializer.Response {
+func (service *RegisterService) Register(c *gin.Context) serializer.Response {
 	log.Println("UserRegisterService: register start")
 	user := model.User{
 		Email:  service.Email,
 		Status: model.NotActivated,
 	}
 	// 密码加密
-	user.SetPassword(service.Password)
+	err := user.SetPassword(service.Password)
+	if err != nil {
+		return serializer.Response{}
+	}
 
 	// 设置默认用户组
 	log.Println("UserRegisterService: get default group id")

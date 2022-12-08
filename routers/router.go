@@ -40,10 +40,10 @@ func SetupRouter() *gin.Engine {
 		user.GET("/menus", middleware.Auth(), controller.UserMenus)
 	}
 	// 用户组相关
-	authGroup := api.Group("/auth/group", middleware.Auth())
+	authGroup := api.Group("/auth/group") //, middleware.Auth()
 	{
 		// 获取所有用户组
-		authGroup.GET("", nil)
+		authGroup.GET("", controller.GetAllGroups)
 		// 创建用户组
 		authGroup.POST("/create", nil)
 		// 修改用户组信息

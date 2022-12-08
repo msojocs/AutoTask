@@ -11,7 +11,7 @@ import (
 // UserRegister 用户注册
 func UserRegister(ctx *gin.Context) {
 
-	var service user.UserRegisterService
+	var service user.RegisterService
 	if err := ctx.ShouldBindJSON(&service); err == nil {
 		res := service.Register(ctx)
 		ctx.JSON(200, res)
@@ -24,7 +24,7 @@ func UserRegister(ctx *gin.Context) {
 // UserLogin 用户登录
 func UserLogin(c *gin.Context) {
 	log.Println("Controllers: UserLogin")
-	var service user.UserLoginService
+	var service user.LoginService
 	if err := c.ShouldBindJSON(&service); err == nil {
 		res := service.Login(c)
 		c.JSON(200, res)
