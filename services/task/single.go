@@ -47,8 +47,8 @@ type Expected struct {
 }
 type taskBody struct {
 	// body类型 file/string/binary/json/form
-	t    string
-	data interface{}
+	T    string      `json:"t"`
+	Data interface{} `json:"data"`
 }
 
 func init() {
@@ -100,6 +100,7 @@ func (task *Task) genClient() *http.Client {
 }
 
 func (task *Task) genBody(body *taskBody) io.Reader {
+	log.Println("genBody", body.T)
 	if body == nil {
 		return nil
 	}
@@ -107,48 +108,14 @@ func (task *Task) genBody(body *taskBody) io.Reader {
 		task.Header = make(map[string]string)
 	}
 
+	log.Println("switch start")
 	// form/string(json...)/file/binary
-	switch body.t {
-	case "string":
-		task.Header["Content-Type"] = "text/plain"
-		v, _ := body.data.(string)
-		return strings.NewReader(v)
-
-	case "json":
-		task.Header["Content-Type"] = "application/json"
-		v, _ := body.data.(string)
-		return strings.NewReader(v)
-
-	case "form":
-		task.Header["Content-Type"] = "application/x-www-form-urlencoded"
-		v, _ := body.data.(map[string]string)
-		ret := ""
-		if v != nil {
-			for key := range v {
-				ret += fmt.Sprintf("%s=%s&", key, v[key])
-			}
-			ret = strings.TrimRight(ret, "&")
-		}
-		return strings.NewReader(ret)
-
-	case "binary":
-		// 文件路径
-		s, ok := body.data.(string)
-		if !ok {
-			log.Println("failed to convert Body data")
-			return nil
-		}
-		storage := conf.Conf.Storage.Path + "/" + s
-		d, err := os.ReadFile(storage)
-		if err != nil {
-			log.Println("failed to read file Data")
-		}
-		return bytes.NewReader(d)
-
+	switch body.T {
 	case "form-data":
+		log.Println("form-data")
 		boundary := "--------------------------462569855119802584810426"
 		task.Header["Content-Type"] = "multipart/form-data; boundary=" + boundary
-		dataMap, ok := body.data.(map[string]string)
+		dataMap, ok := body.Data.(map[string]string)
 		if !ok {
 			return nil
 		}
@@ -171,7 +138,50 @@ func (task *Task) genBody(body *taskBody) io.Reader {
 		}
 		return strings.NewReader(fileData)
 
+	case "form":
+		log.Println("form")
+		task.Header["Content-Type"] = "application/x-www-form-urlencoded"
+		v, _ := body.Data.(map[string]string)
+		ret := ""
+		if v != nil {
+			for key := range v {
+				ret += fmt.Sprintf("%s=%s&", key, v[key])
+			}
+			ret = strings.TrimRight(ret, "&")
+		}
+		return strings.NewReader(ret)
+
+	case "json", "text", "javascript", "html", "xml":
+		log.Println("raw")
+		type2header := make(map[string]string)
+		type2header["text"] = "text/plain"
+		type2header["javascript"] = "application/javascript"
+		type2header["json"] = "application/json"
+		type2header["html"] = "text/html"
+		type2header["xml"] = "application/xml"
+		task.Header["Content-Type"] = type2header[body.T]
+		v, _ := body.Data.(string)
+		return strings.NewReader(v)
+
+	case "binary":
+		log.Println("binary")
+		// 文件路径
+		s, ok := body.Data.(string)
+		if !ok {
+			log.Println("failed to convert Body data")
+			return nil
+		}
+		storage := conf.Conf.Storage.Path + "/" + s
+		d, err := os.ReadFile(storage)
+		if err != nil {
+			log.Println("failed to read file Data")
+		}
+		return bytes.NewReader(d)
+	default:
+		log.Println("未知类型：", body.T)
+		break
 	}
+	log.Println("switch end")
 	return nil
 }
 

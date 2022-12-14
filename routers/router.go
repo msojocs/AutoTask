@@ -78,16 +78,16 @@ func SetupRouter() *gin.Engine {
 		job.DELETE("/:job_id", nil)
 	}
 	// 请求相关
-	req := api.Group("/request")
+	req := api.Group("/request", middleware.Auth())
 	{
 		// 获取请求信息
-		req.GET("/:request_id", middleware.Auth(), nil)
+		req.GET("/:request_id", nil)
 		// 创建请求
-		req.POST("/create", middleware.Auth(), nil)
+		req.POST("/create", nil)
 		// 修改请求
-		req.PUT("/:request_id", middleware.Auth(), nil)
+		req.PUT("/:request_id", nil)
 		//	删除请求
-		req.DELETE("/:request_id", middleware.Auth(), nil)
+		req.DELETE("/:request_id", nil)
 		// 请求测试
 		req.POST("/test", controller.Test)
 	}

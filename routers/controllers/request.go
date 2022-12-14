@@ -8,9 +8,9 @@ import (
 )
 
 func Test(c *gin.Context) {
-	var task task.Task
-	if err := c.ShouldBindJSON(&task); err != nil {
-		resp, err2 := task.Exec()
+	var t task.Task
+	if err := c.ShouldBindJSON(&t); err == nil {
+		resp, err2 := t.Exec()
 		if err2 != nil {
 			return
 		}
@@ -19,6 +19,6 @@ func Test(c *gin.Context) {
 			Data: resp,
 		})
 	} else {
-		c.JSON(http.StatusBadRequest, serializer.Err(1, "数据解析失败", nil))
+		c.JSON(http.StatusBadRequest, serializer.Err(1, "数据解析失败", err))
 	}
 }
