@@ -5,7 +5,6 @@ import (
 	"github.com/msojocs/AutoTask/v1/db"
 	model "github.com/msojocs/AutoTask/v1/models"
 	"github.com/msojocs/AutoTask/v1/pkg/serializer"
-	"net/http"
 )
 
 type AllGroupService struct {
@@ -28,11 +27,24 @@ func (s AllGroupService) Get() serializer.Response {
 type DeleteGroupService struct {
 }
 
-func (s DeleteGroupService) delete(c *gin.Context) {
+func (s DeleteGroupService) Delete(c *gin.Context) bool {
 	groupId := c.Param("group_id")
-	ret := db.DB.Table("at_groups").Delete("id = ?", groupId)
+	ret := db.DB.Model(model.Group{}).Table("at_groups").Delete("id = ?", groupId)
 	if ret.Error != nil {
-
+		return false
 	}
-	c.JSON(http.StatusNoContent, nil)
+	return true
+}
+
+type UpdateGroupService struct {
+	Name string `json:"name"`
+}
+
+func (s UpdateGroupService) Update(c *gin.Context) error {
+	groupId := c.Param("group_id")
+	ret := db.DB.Table("at_groups").Where("id = ?", groupId).Update("name", s.Name)
+	if ret.Error != nil {
+		return ret.Error
+	}
+	return nil
 }

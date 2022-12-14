@@ -34,9 +34,9 @@ type Task struct {
 
 // Result HTTP响应信息
 type Result struct {
-	Status int
-	Header map[string]string
-	Body   string
+	Status int               `json:"status"`
+	Header map[string]string `json:"header"`
+	Body   string            `json:"body"`
 }
 
 // Expected 验证数据
@@ -54,7 +54,7 @@ type taskBody struct {
 func init() {
 }
 
-func (task *Task) exec() (Result, error) {
+func (task *Task) Exec() (Result, error) {
 	log.Println("request start")
 
 	var result Result
@@ -145,7 +145,7 @@ func (task *Task) genBody(body *taskBody) io.Reader {
 		}
 		return bytes.NewReader(d)
 
-	case "file":
+	case "form-data":
 		boundary := "--------------------------462569855119802584810426"
 		task.Header["Content-Type"] = "multipart/form-data; boundary=" + boundary
 		dataMap, ok := body.data.(map[string]string)
@@ -198,7 +198,7 @@ func request(task *Task) (Result, error) {
 		}
 	}
 
-	log.Println("exec")
+	log.Println("Exec")
 	client := task.genClient()
 	resp, err := client.Do(req)
 	if err != nil {

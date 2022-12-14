@@ -33,7 +33,7 @@ func TestRequest(t *testing.T) {
 		log.Panicln(err.Error())
 		return
 	}
-	result, err := task.exec()
+	result, err := task.Exec()
 	if err != nil {
 		log.Panicln(err.Error())
 		return

@@ -118,7 +118,7 @@ const (
 	CodeEmailSent = 40033
 	// CodeUserCannotActivate 用户无法激活
 	CodeUserCannotActivate = 40034
-	// 存储策略不存在
+	// CodePolicyNotExist 存储策略不存在
 	CodePolicyNotExist = 40035
 	// 无法删除默认存储策略
 	CodeDeleteDefaultPolicy = 40036

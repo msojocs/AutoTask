@@ -19,7 +19,7 @@ func SetupRouter() *gin.Engine {
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"PUT", "PATCH", "POST", "GET"},
-		AllowHeaders:     []string{"Origin", "Content-Type"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		AllowOriginFunc: func(origin string) bool {
@@ -47,9 +47,9 @@ func SetupRouter() *gin.Engine {
 		// 创建用户组
 		authGroup.POST("/create", nil)
 		// 修改用户组信息
-		authGroup.PUT("/:group_id", nil)
+		authGroup.PUT("/:group_id", controller.UpdateGroups)
 		// 删除用户组
-		authGroup.DELETE("/:group_id", nil)
+		authGroup.DELETE("/:group_id", controller.DeleteGroups)
 		// 修改用户组下的菜单
 		authGroup.PUT("/menus", nil)
 	}
@@ -78,16 +78,18 @@ func SetupRouter() *gin.Engine {
 		job.DELETE("/:job_id", nil)
 	}
 	// 请求相关
-	req := api.Group("/request", middleware.Auth())
+	req := api.Group("/request")
 	{
 		// 获取请求信息
-		req.GET("/:request_id", nil)
+		req.GET("/:request_id", middleware.Auth(), nil)
 		// 创建请求
-		req.POST("/create", nil)
+		req.POST("/create", middleware.Auth(), nil)
 		// 修改请求
-		req.PUT("/:request_id", nil)
+		req.PUT("/:request_id", middleware.Auth(), nil)
 		//	删除请求
-		req.DELETE("/:request_id", nil)
+		req.DELETE("/:request_id", middleware.Auth(), nil)
+		// 请求测试
+		req.POST("/test", controller.Test)
 	}
 
 	url := ginSwagger.URL("http://localhost:8080/swagger/doc.json")

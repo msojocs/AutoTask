@@ -35,7 +35,7 @@ func TestSingle(t *testing.T) {
 		Vtype: "integerEqual",
 	})
 
-	_, err := task.exec()
+	_, err := task.Exec()
 	if err != nil {
 		log.Panicln(err.Error())
 		return
@@ -58,7 +58,7 @@ func TestUploadFile(t *testing.T) {
 		Vtype: "stringNotEmpty",
 	})
 
-	_, err := task.exec()
+	_, err := task.Exec()
 	if err != nil {
 		log.Panicln(err.Error())
 		return
