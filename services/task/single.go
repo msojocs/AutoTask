@@ -47,8 +47,27 @@ type Expected struct {
 }
 type taskBody struct {
 	// body类型 file/string/binary/json/form
-	T    string      `json:"t"`
-	Data interface{} `json:"data"`
+	Type string   `json:"type"`
+	Data BodyData `json:"data"`
+}
+type BodyData struct {
+	FormData []FormData `json:"formData"`
+	Form     []Form     `json:"form"`
+	Raw      string     `json:"raw"`
+	Binary   string     `json:"binary"`
+}
+type FormData struct {
+	Enable bool
+	Type   string
+	Key    string
+	Value  string
+}
+type Form struct {
+	Enable bool
+	Type   string
+	Key    string
+	Value  string
+	Desc   string
 }
 
 func init() {
@@ -100,7 +119,7 @@ func (task *Task) genClient() *http.Client {
 }
 
 func (task *Task) genBody(body *taskBody) io.Reader {
-	log.Println("genBody", body.T)
+	log.Println("genBody", body.Type)
 	if body == nil {
 		return nil
 	}
@@ -110,29 +129,38 @@ func (task *Task) genBody(body *taskBody) io.Reader {
 
 	log.Println("switch start")
 	// form/string(json...)/file/binary
-	switch body.T {
-	case "form-data":
-		log.Println("form-data")
+	switch body.Type {
+	case "formData":
+		log.Println("formData")
 		boundary := "--------------------------462569855119802584810426"
 		task.Header["Content-Type"] = "multipart/form-data; boundary=" + boundary
-		dataMap, ok := body.Data.(map[string]string)
-		if !ok {
-			return nil
-		}
+		dataMap := body.Data.FormData
 
 		var fileData string
 		if dataMap != nil {
-			for name := range dataMap {
-				file := conf.Conf.Storage.Path + "/" + dataMap[name]
-				filename := path.Base(file)
-				fileContent, err := os.ReadFile(file)
-				if err != nil {
+			for _, formData := range dataMap {
+				if len(formData.Key+formData.Value) == 0 || !formData.Enable {
 					continue
 				}
+
+				file := conf.Conf.Storage.Path + "/" + formData.Value
+				filename := path.Base(file)
 				fileData = "--" + boundary + "\r\n"
-				fileData = fileData + "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + filename + "\"\r\n"
-				fileData = fileData + "Content-Type: application/octet-stream\r\n\r\n"
-				fileData = fileData + string(fileContent) + "\r\n"
+				fileData += "Content-Disposition: form-data; name=\"" + formData.Key + "\""
+
+				if formData.Type == "file" {
+					fileData += "; filename=\"" + filename + "\"\r\n"
+					fileData = fileData + "Content-Type: application/octet-stream\r\n\r\n"
+					fileContent, err := os.ReadFile(file)
+					if err != nil {
+						continue
+					}
+					fileData = fileData + string(fileContent) + "\r\n"
+				} else {
+					//	text
+					fileData += "\r\n\r\n"
+					fileData += formData.Value + "\r\n"
+				}
 			}
 			fileData += "--" + boundary + "--\r\n"
 		}
@@ -141,11 +169,15 @@ func (task *Task) genBody(body *taskBody) io.Reader {
 	case "form":
 		log.Println("form")
 		task.Header["Content-Type"] = "application/x-www-form-urlencoded"
-		v, _ := body.Data.(map[string]string)
+		v := body.Data.Form
 		ret := ""
 		if v != nil {
-			for key := range v {
-				ret += fmt.Sprintf("%s=%s&", key, v[key])
+			for _, value := range v {
+				if len(value.Key+value.Value) == 0 || !value.Enable {
+					continue
+				}
+
+				ret += fmt.Sprintf("%s=%s&", value.Key, value.Value)
 			}
 			ret = strings.TrimRight(ret, "&")
 		}
@@ -159,18 +191,14 @@ func (task *Task) genBody(body *taskBody) io.Reader {
 		type2header["json"] = "application/json"
 		type2header["html"] = "text/html"
 		type2header["xml"] = "application/xml"
-		task.Header["Content-Type"] = type2header[body.T]
-		v, _ := body.Data.(string)
+		task.Header["Content-Type"] = type2header[body.Type]
+		v := body.Data.Raw
 		return strings.NewReader(v)
 
 	case "binary":
 		log.Println("binary")
 		// 文件路径
-		s, ok := body.Data.(string)
-		if !ok {
-			log.Println("failed to convert Body data")
-			return nil
-		}
+		s := body.Data.Binary
 		storage := conf.Conf.Storage.Path + "/" + s
 		d, err := os.ReadFile(storage)
 		if err != nil {
@@ -178,7 +206,7 @@ func (task *Task) genBody(body *taskBody) io.Reader {
 		}
 		return bytes.NewReader(d)
 	default:
-		log.Println("未知类型：", body.T)
+		log.Println("未知类型：", body.Type)
 		break
 	}
 	log.Println("switch end")

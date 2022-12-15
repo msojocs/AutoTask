@@ -47,11 +47,12 @@ func TestUploadFile(t *testing.T) {
 	var task Task
 	task.Method = "POST"
 	task.Url = "https://httpbin.org/post"
-	task.Body.T = "file"
+	task.Body.Type = "file"
 	//task.Proxy = "http://127.0.0.1:8888"
-	task.Body.Data = map[string]string{
-		"file1": "0cdefae3f68eb4bb5a19181a936fa009",
-	}
+	//task.Body.Data = map[string]string{
+	//	"file1": "0cdefae3f68eb4bb5a19181a936fa009",
+	//}
+	//task.Body.Data.FormData
 	task.Expected = append(task.Expected, Expected{
 		Path:  "body.files.file1",
 		Value: "",

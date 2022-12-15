@@ -90,6 +90,10 @@ func SetupRouter() *gin.Engine {
 		req.DELETE("/:request_id", nil)
 		// 请求测试
 		req.POST("/test", controller.Test)
+		// 上传文件
+		req.POST("/file/upload", controller.Upload)
+		// 删除文件
+		req.DELETE("/file/:id", controller.Test)
 	}
 
 	url := ginSwagger.URL("http://localhost:8080/swagger/doc.json")
