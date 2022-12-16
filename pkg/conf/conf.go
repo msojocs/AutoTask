@@ -21,4 +21,4 @@ type conf struct {
 
 // Conf 初始化
 var Conf conf
-var DbConf *database = &Conf.Db
+var DbConf = &Conf.Db

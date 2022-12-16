@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	jwt "github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v4"
 	model "github.com/msojocs/AutoTask/v1/models"
 	"github.com/msojocs/AutoTask/v1/pkg/serializer"
 )

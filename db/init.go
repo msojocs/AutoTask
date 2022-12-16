@@ -12,7 +12,7 @@ import (
 
 var DB *gorm.DB
 
-// 通过bootstrap初始化，使用自带init由于执行顺序问题会造成初始化异常
+// Init 通过bootstrap初始化，使用自带init由于执行顺序问题会造成初始化异常
 func Init() {
 	log.Println("Database init start")
 	var err error

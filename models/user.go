@@ -100,7 +100,7 @@ func (user *User) SetPassword(password string) error {
 	}
 
 	//存储 Salt 值和摘要， ":"分割
-	user.Password = salt + ":" + string(bs)
+	user.Password = salt + ":" + bs
 	return nil
 }
 
