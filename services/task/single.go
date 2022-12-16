@@ -145,7 +145,7 @@ func (task *Task) genBody(body *taskBody) io.Reader {
 
 				file := conf.Conf.Storage.Path + "/" + formData.Value
 				filename := path.Base(file)
-				fileData = "--" + boundary + "\r\n"
+				fileData += "--" + boundary + "\r\n"
 				fileData += "Content-Disposition: form-data; name=\"" + formData.Key + "\""
 
 				if formData.Type == "file" {

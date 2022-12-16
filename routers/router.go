@@ -18,7 +18,7 @@ func SetupRouter() *gin.Engine {
 	// 跨域配置
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"PUT", "PATCH", "POST", "GET"},
+		AllowMethods:     []string{"PUT", "PATCH", "POST", "GET", "DELETE"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
@@ -91,9 +91,9 @@ func SetupRouter() *gin.Engine {
 		// 请求测试
 		req.POST("/test", controller.Test)
 		// 上传文件
-		req.POST("/file/upload", controller.Upload)
+		req.POST("/file/upload", controller.UploadFile)
 		// 删除文件
-		req.DELETE("/file/:id", controller.Test)
+		req.DELETE("/file", controller.DeleteFile)
 	}
 
 	url := ginSwagger.URL("http://localhost:8080/swagger/doc.json")

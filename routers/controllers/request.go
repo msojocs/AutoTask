@@ -24,10 +24,10 @@ func Test(c *gin.Context) {
 	}
 }
 
-func Upload(c *gin.Context) {
+func UploadFile(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err == nil {
-		var s request.FileUploadService
+		var s request.FileService
 		path, err := s.Upload(c, file)
 		if err != nil {
 			c.JSON(http.StatusOK, serializer.Err(1, "文件存储失败", err))
@@ -41,5 +41,20 @@ func Upload(c *gin.Context) {
 		})
 	} else {
 		c.JSON(http.StatusBadRequest, serializer.Err(2, "未上传指定文件", err))
+	}
+}
+
+func DeleteFile(c *gin.Context) {
+	file := c.Query("file")
+	if len(file) > 0 {
+		var s request.FileService
+		err := s.Delete(c, file)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, serializer.Err(1, "文件删除失败", err))
+			return
+		}
+		c.JSON(http.StatusNoContent, nil)
+	} else {
+		c.JSON(http.StatusBadRequest, serializer.Err(2, "参数错误", nil))
 	}
 }

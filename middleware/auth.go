@@ -38,7 +38,7 @@ func Auth() gin.HandlerFunc {
 		}
 		auth = strings.Fields(auth)[1]
 		// 校验token
-		_, err := parseToken(auth)
+		jData, err := parseToken(auth)
 		if err != nil {
 			context.Abort()
 			result.Msg = "token 过期" + err.Error()
@@ -47,6 +47,7 @@ func Auth() gin.HandlerFunc {
 			})
 		} else {
 			println("token 正确")
+			context.Set("user_id", jData.Id)
 		}
 		context.Next()
 	}
