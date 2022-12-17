@@ -34,16 +34,20 @@ type Task struct {
 
 // Result HTTP响应信息
 type Result struct {
-	Status int               `json:"status"`
-	Header map[string]string `json:"header"`
-	Body   string            `json:"body"`
+	Status   int               `json:"status"`
+	Header   map[string]string `json:"header"`
+	Body     string            `json:"body"`
+	Expected map[string]string
 }
 
 // Expected 验证数据
 type Expected struct {
-	Path  string
-	Value string
-	Vtype string
+	Name   string
+	Enable bool
+	Target string
+	Path   string
+	Exp    string
+	Value  string
 }
 type taskBody struct {
 	// body类型 file/string/binary/json/form
@@ -88,11 +92,15 @@ func (task *Task) Exec() (Result, error) {
 
 	// 检测请求结果
 	if task.Expected != nil {
-		for i := range task.Expected {
-			exp := task.Expected[i]
-			err = checkResponse(result, exp)
+		result.Expected = make(map[string]string)
+		for _, expected := range task.Expected {
+			if !expected.Enable {
+				continue
+			}
+			err = checkResponse(result, expected)
 			if nil != err {
-				return result, err
+				result.Expected[expected.Name] = err.Error()
+				return result, nil
 			}
 		}
 	}

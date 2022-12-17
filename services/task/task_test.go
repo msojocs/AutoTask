@@ -40,3 +40,16 @@ func TestRequest(t *testing.T) {
 	}
 	log.Println(result)
 }
+
+func TestType(t *testing.T) {
+	var a interface{} = "123"
+	switch a.(type) {
+	case int64:
+		log.Println("int64")
+		break
+	default:
+		log.Println("unknown")
+		break
+
+	}
+}

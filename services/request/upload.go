@@ -12,15 +12,20 @@ type FileService struct {
 
 func (s FileService) Upload(c *gin.Context, f *multipart.FileHeader) (string, error) {
 	userId := c.GetString("user_id")
-	path := "/" + userId + "/request/1"
-	err := c.SaveUploadedFile(f, conf.Conf.Storage.Path+path)
+	path := conf.Conf.Storage.Path + "/" + userId + "/request"
+	err := os.MkdirAll(path, os.ModePerm)
 	if err != nil {
 		return "", err
 	}
-	return path, nil
+	filePath := path + "/1"
+	err = c.SaveUploadedFile(f, filePath)
+	if err != nil {
+		return "", err
+	}
+	return filePath, nil
 }
 
-func (s FileService) Delete(c *gin.Context, f string) error {
+func (s FileService) Delete(c *gin.Context, _ string) error {
 	userId := c.GetString("user_id")
 	path := "/" + userId + "/request/1"
 	path = conf.Conf.Storage.Path + path

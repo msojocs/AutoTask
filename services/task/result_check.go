@@ -4,31 +4,24 @@ import (
 	"errors"
 	"fmt"
 	"github.com/tidwall/gjson"
+	"regexp"
 	"strconv"
-	"strings"
 )
 
 func init() {
 	checkMap = make(map[string]func(ret Result, exp Expected) error)
-	checkMap["body"] = checkBody
+	checkMap["jsonBody"] = checkJsonBody
+	checkMap["textBody"] = checkTextBody
 	checkMap["status"] = checkStatus
 }
 
 var checkMap map[string]func(ret Result, exp Expected) error
 
 func checkResponse(resp Result, exp Expected) error {
-	idx := strings.Index(exp.Path, ".")
-	path := exp.Path
-	if idx == -1 {
-		idx = len(path)
-	} else {
-		exp.Path = path[idx+1:]
-	}
-	part := path[0:idx]
 
 	// Body/head/Status...
-	if checkMap[part] != nil {
-		err := checkMap[part](resp, exp)
+	if checkMap[exp.Target] != nil {
+		err := checkMap[exp.Target](resp, exp)
 		if err != nil {
 			return err
 		}
@@ -43,15 +36,24 @@ func checkStatus(resp Result, exp Expected) error {
 	if err != nil {
 		return errors.New(fmt.Sprintf("failed to parse Status Value, Expected:%s", exp.Value))
 	}
-	if resp.Status != v {
-		return errors.New(fmt.Sprintf("Status not matched, Expected:%d, actual:%d", v, resp.Status))
+	switch exp.Exp {
+	case ">":
+		if resp.Status <= v {
+			return errors.New("status not matched")
+		}
+		break
+	case "=":
+		if resp.Status != v {
+			return errors.New(fmt.Sprintf("Status not matched, Expected:%d, actual:%d", v, resp.Status))
+		}
+		break
 	}
 	return nil
 }
 
-func checkBody(result Result, exp Expected) error {
+func checkJsonBody(result Result, exp Expected) error {
 	ret := gjson.Get(result.Body, exp.Path)
-	switch exp.Vtype {
+	switch exp.Exp {
 	// int类型相等
 	case "integerEqual":
 		v, err := strconv.ParseInt(exp.Value, 10, 64)
@@ -94,6 +96,59 @@ func checkBody(result Result, exp Expected) error {
 		}
 		break
 
+	case "regex":
+		_, err := regexp.MatchString(exp.Value, ret.String())
+		if err != nil {
+			return err
+		}
+		break
 	}
+	return nil
+}
+
+func checkTextBody(result Result, exp Expected) error {
+	ret := result.Body
+	switch exp.Exp {
+
+	//	字符串要相等
+	case "=":
+		if ret != exp.Value {
+			return errors.New(fmt.Sprintf("check failed! Expected:%s actual:%s", exp.Value, ret))
+		}
+		//log.Panicln("check failed!", "Expected:", Value, " actual:", ret.String())
+		break
+
+	//	字符串不相等
+	case "!=":
+		if ret == exp.Value {
+			return errors.New("check failed! Content is equal")
+		}
+		//log.Panicln("check failed!", "Expected:", Value, " actual:", ret.String())
+		break
+
+	//	字符串非空
+	case "!empty":
+		if len(ret) == 0 {
+			return errors.New("check failed! string is empty")
+		}
+		//log.Panicln("check failed!", "Expected:", Value, " actual:", ret.String())
+		break
+
+	//	字符串空
+	case "empty":
+		if len(ret) > 0 {
+			return errors.New("check failed! string is not empty")
+		}
+		//log.Panicln("check failed!", "Expected:", Value, " actual:", ret.String())
+		break
+
+	case "regex":
+		_, err := regexp.MatchString(exp.Value, ret)
+		if err != nil {
+			return err
+		}
+		break
+	}
+
 	return nil
 }
