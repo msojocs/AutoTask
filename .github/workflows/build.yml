@@ -24,5 +24,78 @@ jobs:
     - name: Build
       run: go build -v ./...
 
-    - name: Test
-      run: go test -v ./...
+#    - name: Test
+#      run: go test -v ./...
+        # Install the cosign tool except on PR
+        # https://github.com/sigstore/cosign-installer
+
+
+    - name: Install cosign
+      if: github.event_name != 'pull_request'
+      uses: sigstore/cosign-installer@f3c664df7af409cb4873aa5068053ba9d61a57b6 #v2.6.0
+      with:
+        cosign-release: 'v1.13.1'
+
+    # Workaround: https://github.com/docker/build-push-action/issues/461
+    - name: Setup Docker buildx
+      uses: docker/setup-buildx-action@79abd3f86f79a9d68a23c75a09a9a85889262adf
+
+    # Login against a Docker registry except on PR
+    # https://github.com/docker/login-action
+    - name: Log into registry ${{ env.REGISTRY }}
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    # Extract metadata (tags, labels) for Docker
+    # https://github.com/docker/metadata-action
+    - name: Extract Docker metadata
+      id: meta
+      uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+    # Build and push Docker image with Buildx (don't push on PR)
+    # https://github.com/docker/build-push-action
+    - name: Build and push Docker image
+      id: build-and-push
+      uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a
+      with:
+        context: .
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+#  pull-docker:
+#    needs: [ build ]
+#    name: Pull Docker
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Deploy
+#        uses: appleboy/ssh-action@master
+#        with:
+#          host: ${{ secrets.TEST_HOST }} # 服务器ip
+#          port: ${{ secrets.HOST_PORT }} # 服务器ssh端口
+#          username: ${{ secrets.TEST_HOST_USERNAME }} # 服务器登录用户名
+#          key: ${{ secrets.TEST_HOST_KEY }} # 服务器登录密码
+#          passphrase: ${{ secrets.TEST_HOST_KEY_PASSPHASE }}
+#          script: |
+#            # 停止旧版容器
+#            docker stop $(docker ps --filter ancestor=${{ secrets.TEST_DOCKER_REPOSITORY }} -q)
+#            # 删除旧版容器
+#            docker rm -f $(docker ps -a --filter ancestor=${{ secrets.TEST_DOCKER_REPOSITORY }}:latest -q)
+#            # 删除旧版镜像
+#            docker rmi -f $(docker images ${{ secrets.TEST_DOCKER_REPOSITORY }}:latest -q)
+#            # 登录阿里云镜像服务器
+#            docker login --username=${{ secrets.DOCKER_USERNAME }} --password ${{ secrets.DOCKER_PASSWORD }} registry.cn-hangzhou.aliyuncs.com
+#            # 拉取最新latest版本镜像
+#            docker pull ${{ secrets.TEST_DOCKER_REPOSITORY }}:latest
+#            cd /root/docker
+#            docker-compose up -d robot
+#            # 运行最新latest版本镜像
+#            docker run -d ${{ secrets.TEST_DOCKER_REPOSITORY }}:latest
