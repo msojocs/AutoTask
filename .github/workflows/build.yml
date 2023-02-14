@@ -83,31 +83,29 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-#  pull-docker:
-#    needs: [ build ]
-#    name: Pull Docker
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Deploy
-#        uses: appleboy/ssh-action@master
-#        with:
-#          host: ${{ secrets.TEST_HOST }} # 服务器ip
-#          port: ${{ secrets.HOST_PORT }} # 服务器ssh端口
-#          username: ${{ secrets.TEST_HOST_USERNAME }} # 服务器登录用户名
-#          key: ${{ secrets.TEST_HOST_KEY }} # 服务器登录密码
-#          passphrase: ${{ secrets.TEST_HOST_KEY_PASSPHASE }}
-#          script: |
-#            # 停止旧版容器
-#            docker stop $(docker ps --filter ancestor=${{ secrets.TEST_DOCKER_REPOSITORY }} -q)
-#            # 删除旧版容器
-#            docker rm -f $(docker ps -a --filter ancestor=${{ secrets.TEST_DOCKER_REPOSITORY }}:latest -q)
-#            # 删除旧版镜像
-#            docker rmi -f $(docker images ${{ secrets.TEST_DOCKER_REPOSITORY }}:latest -q)
-#            # 登录阿里云镜像服务器
-#            docker login --username=${{ secrets.DOCKER_USERNAME }} --password ${{ secrets.DOCKER_PASSWORD }} registry.cn-hangzhou.aliyuncs.com
-#            # 拉取最新latest版本镜像
-#            docker pull ${{ secrets.TEST_DOCKER_REPOSITORY }}:latest
-#            cd /root/docker
-#            docker-compose up -d robot
-#            # 运行最新latest版本镜像
+  pull-docker:
+    needs: [ build ]
+    name: Pull Docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.TEST_HOST }} # 服务器ip
+          port: ${{ secrets.HOST_PORT }} # 服务器ssh端口
+          username: ${{ secrets.TEST_HOST_USERNAME }} # 服务器登录用户名
+          key: ${{ secrets.TEST_HOST_KEY }} # 服务器登录密码
+          passphrase: ${{ secrets.TEST_HOST_KEY_PASSPHASE }}
+          script: |
+            # 停止旧版容器
+            docker stop $(docker ps --filter ancestor=ghcr.io/msojocs/autotask -q)
+            # 删除旧版容器
+            docker rm -f $(docker ps -a --filter ancestor=ghcr.io/msojocs/autotask:dev -q)
+            # 删除旧版镜像
+            docker rmi -f $(docker images ghcr.io/msojocs/autotask:dev -q)
+            # 拉取最新latest版本镜像
+            docker pull ghcr.io/msojocs/autotask:dev
+            cd /root/docker
+            docker-compose up -d autotask
+            # 运行最新latest版本镜像
 #            docker run -d ${{ secrets.TEST_DOCKER_REPOSITORY }}:latest
