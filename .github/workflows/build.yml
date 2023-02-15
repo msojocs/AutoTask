@@ -106,13 +106,14 @@ jobs:
           passphrase: ${{ secrets.TEST_HOST_KEY_PASSPHASE }}
           script: |
             # 停止旧版容器
-            docker stop $(docker ps --filter ancestor=ghcr.nju.edu.cn/msojocs/autotask -q)
+            docker stop $(docker ps --filter ancestor=ghcr.nju.edu.cn/msojocs/autotask:dev -q)
             # 删除旧版容器
             docker rm -f $(docker ps -a --filter ancestor=ghcr.nju.edu.cn/msojocs/autotask:dev -q)
             # 删除旧版镜像
             docker rmi -f $(docker images ghcr.nju.edu.cn/msojocs/autotask:dev -q)
             # 拉取最新latest版本镜像
             docker pull ghcr.nju.edu.cn/msojocs/autotask:dev@${{ needs.build.outputs.imageid }}
+            docker tag ghcr.nju.edu.cn/msojocs/autotask:dev@${{ needs.build.outputs.imageid }} ghcr.nju.edu.cn/msojocs/autotask:dev
             cd /root/docker
             docker-compose up -d autotask
             # 运行最新latest版本镜像
