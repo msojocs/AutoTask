@@ -6,6 +6,7 @@ import (
 	router "github.com/msojocs/AutoTask/v1/routers"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 // @title Gin swagger
@@ -14,7 +15,7 @@ import (
 
 // @contact.name msojocs
 // @contact.url https://jysafe.cn
-// @contact.email msojocs@g mail.com
+// @contact.email msojocs@gmail.com
 
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
@@ -22,9 +23,10 @@ import (
 // @host localhost:8080
 func main() {
 
-	wd, err := os.Getwd()
+	ed, err := os.Executable()
+	wd := filepath.Dir(ed)
 	if err != nil {
-		log.Panicln("获取工作目录失败！")
+		log.Panicln("获取程序所在目录失败！")
 	}
 
 	bootstrap.Init(wd)
