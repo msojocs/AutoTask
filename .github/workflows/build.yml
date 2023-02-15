@@ -19,6 +19,9 @@ jobs:
 
   build:
     runs-on: ubuntu-18.04
+    outputs:
+      imageid: ${{ steps.build-and-push.outputs.imageid }}
+      digest: ${{ steps.build-and-push.outputs.digest }}
     permissions:
       contents: read
       packages: write
@@ -40,7 +43,6 @@ jobs:
 #      run: go test -v ./...
         # Install the cosign tool except on PR
         # https://github.com/sigstore/cosign-installer
-
 
     - name: Install cosign
       if: github.event_name != 'pull_request'
@@ -83,11 +85,17 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
+    - name: test
+      run: echo ${{ steps.build-and-push.outputs.imageid }} && echo ${{ steps.build-and-push.outputs.digest }}
+
   pull-docker:
     needs: [ build ]
     name: Pull Docker
     runs-on: ubuntu-latest
     steps:
+      - name: Docker Image Info
+        run: echo "${{ needs.build.outputs.imageid }} - ${{ needs.build.outputs.digest }}"
+
       - name: Deploy
         uses: appleboy/ssh-action@master
         with:
