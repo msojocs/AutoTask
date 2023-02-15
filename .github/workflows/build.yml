@@ -112,7 +112,7 @@ jobs:
             # 删除旧版镜像
             docker rmi -f $(docker images ghcr.nju.edu.cn/msojocs/autotask:dev -q)
             # 拉取最新latest版本镜像
-            docker pull ghcr.nju.edu.cn/msojocs/autotask:dev
+            docker pull ghcr.nju.edu.cn/msojocs/autotask:dev@${{ needs.build.outputs.imageid }}
             cd /root/docker
             docker-compose up -d autotask
             # 运行最新latest版本镜像
