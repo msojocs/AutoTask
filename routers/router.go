@@ -99,5 +99,9 @@ func SetupRouter() *gin.Engine {
 	url := ginSwagger.URL("http://localhost:8080/swagger/doc.json")
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 
+	allRoute := router.Routes()
+	for _, route := range allRoute {
+		println("route: ", route.Path)
+	}
 	return router
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/msojocs/AutoTask/v1/bootstrap"
+	"github.com/msojocs/AutoTask/v1/cron"
 	_ "github.com/msojocs/AutoTask/v1/docs"
 	router "github.com/msojocs/AutoTask/v1/routers"
 	"log"
@@ -31,8 +32,14 @@ func main() {
 
 	bootstrap.Init(wd)
 	route := router.SetupRouter()
+
+	//	计划任务
+	log.Println("计划任务...")
+	cron.Init()
+
 	err = route.Run()
 	if err != nil {
+		log.Panicln(err.Error())
 		return
 	}
 }

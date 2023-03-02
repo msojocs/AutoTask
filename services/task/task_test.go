@@ -16,7 +16,7 @@ func init() {
 	if err != nil {
 		log.Panicln("获取工作目录失败！")
 	}
-	bootstrap.Init(wd + "/../../")
+	bootstrap.Init(wd + "/../../tmp/")
 }
 
 func TestRequest(t *testing.T) {
@@ -52,4 +52,8 @@ func TestType(t *testing.T) {
 		break
 
 	}
+}
+
+func TestRun(t *testing.T) {
+	Run()
 }

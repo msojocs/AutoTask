@@ -226,6 +226,7 @@ func request(task *Task) (Result, error) {
 
 	result := Result{}
 
+	// 请求体处理
 	var body io.Reader
 	body = task.genBody(&task.Body)
 
