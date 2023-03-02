@@ -31,13 +31,13 @@ func NewErrorFromResponse(resp *Response) AppError {
 }
 
 // WithError 将应用error携带标准库中的error
-func (err *AppError) WithError(raw error) AppError {
+func (err AppError) WithError(raw error) AppError {
 	err.RawError = raw
-	return *err
+	return err
 }
 
 // Error 返回业务代码确定的可读错误信息
-func (err *AppError) Error() string {
+func (err AppError) Error() string {
 	return err.Msg
 }
 
